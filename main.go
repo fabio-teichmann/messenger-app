@@ -99,28 +99,52 @@ func (subscriber *EventSubscriber) CreateChat(subscribers []*EventSubscriber) Ch
 }
 
 func (e *Event) SendToChat(chat Chat) {
-	go func() {
-		// defer close(chat.Chat)
-		chat.Chat <- *e
-		chat.History = append(chat.History, e.Data)
-		// close(chat.Chat)
-	}()
+	chat.Chat <- *e
+	chat.History = append(chat.History, e.Data)
 }
 
-func (chat *Chat) ReadMessages() {
-	for message := range chat.Chat {
-		chat.Subject.NotifySubscriber(message)
+type ControlMsg int
+
+const (
+	DoExit = iota
+	ExitOK
+)
+
+func (chat *Chat) ReadMessages(control chan ControlMsg) {
+
+	for {
+		select {
+		case msg := <-control:
+			switch msg {
+			case DoExit:
+				fmt.Println("exit read message")
+				control <- ExitOK
+				return
+			}
+		case message := <-chat.Chat:
+			chat.Subject.NotifySubscriber(message)
+		}
 	}
 }
 
 func main() {
+	// initiate control channel for graceful shutdown
+	controlChan := make(chan ControlMsg, 5)
+
 	var user1 = EventSubscriber{ID: 1}
 	var user2 = EventSubscriber{ID: 2}
-	// var user3 = EventSubscriber{ID: 3}
+	var user3 = EventSubscriber{ID: 3}
 
 	var chat12 = user1.CreateChat([]*EventSubscriber{&user2})
-	// var chat13 = user1.CreateChat([]*EventSubscriber{&user3})
+	var chat13 = user1.CreateChat([]*EventSubscriber{&user3})
 
+	// listen for messages
+	go func() {
+		chat13.ReadMessages(controlChan)
+		chat12.ReadMessages(controlChan)
+	}()
+
+	// send test messages
 	for _, i := range []int{1, 2, 3, 1, 2, 3} {
 		message := models.Message{
 			Body: fmt.Sprintf("%s_%v", "test message", i),
@@ -128,46 +152,24 @@ func main() {
 		}
 
 		event := Event{
-			SubjectID: chat12.Subject.ID,
+			SubjectID: chat13.Subject.ID,
 			TargetID:  i,
 			Data:      message,
 		}
 
-		event.SendToChat(chat12)
+		event.SendToChat(chat13)
+		// event.SendToChat(chat12)
+		time.Sleep(1 * time.Second)
 	}
-	chat12.ReadMessages()
-	// chat13.ReadMessages()
-	// var chat12 = EventSubject{
-	// 	ID:        12,
-	// 	Observers: sync.Map{},
-	// }
-	// var chat13 = EventSubject{
-	// 	ID:        13,
-	// 	Observers: sync.Map{},
-	// }
 
-	// subscribing users to chats
-	// chat12.AddSubscriber(user2)
-	// chat12.AddSubscriber(user1)
-
-	// chat13.AddSubscriber(user3)
-	// chat13.AddSubscriber(user1)
-
-	// for _, chat := range []*EventSubject{&chat13, &chat12, &chat13} {
-	// 	message := models.Message{
-	// 		Body: fmt.Sprintf("%s_%v", "test message", chat.ID),
-	// 		Time: time.Now(),
-	// 	}
-
-	// 	event := Event{
-	// 		SubjectID: user1.ID,
-	// 		TargetID:  chat.ID % 10,
-	// 		Data:      message,
-	// 	}
-	// 	// fmt.Println(event)
-
-	// 	chat.NotifySubscriber(event)
-	// user1.NotifyCallback(event)
-
-	// }
+	for {
+		select {
+		case <-time.After(7 * time.Second):
+			fmt.Println("Timed out...")
+			controlChan <- DoExit
+			<-controlChan
+			fmt.Println("Exit program")
+			return
+		}
+	}
 }
