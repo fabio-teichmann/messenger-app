@@ -1,6 +1,9 @@
 package models
 
+import "time"
+
 type Message struct {
-	Body       []byte `json:"body"`
+	Body       string `json:"body"`
 	Attachment []byte `json:"attachmet"`
+	Time       time.Time
 }
