@@ -7,3 +7,11 @@ type Message struct {
 	Attachment []byte `json:"attachmet"`
 	Time       time.Time
 }
+
+func NewMessage(body string) Message {
+	message := Message{
+		Body: body,
+		Time: time.Now(),
+	}
+	return message
+}
