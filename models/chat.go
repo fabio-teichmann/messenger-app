@@ -11,7 +11,7 @@ type EventSubject struct {
 }
 
 type EventSubscriber struct {
-	User
+	User User
 }
 
 type Chat struct {
