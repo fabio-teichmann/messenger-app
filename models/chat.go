@@ -6,7 +6,8 @@ import (
 )
 
 type EventSubject struct {
-	ID        int
+	ID int
+	// Queue     chan Event
 	Observers sync.Map
 }
 
@@ -39,7 +40,8 @@ func (subscriber *EventSubscriber) CreateChat(subscribers []*EventSubscriber) Ch
 
 	// subscribe all subscribers to subject
 	for _, sub := range append(subscribers, subscriber) {
-		subject.AddSubscriber(*sub)
+		// fmt.Println("CreateChat:", sub)
+		subject.AddSubscriber(sub)
 	}
 
 	return Chat{
