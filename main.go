@@ -40,12 +40,12 @@ func main() {
 	for _, i := range []int{1, 2, 3, 1, 2, 3} {
 		message := models.NewMessage(fmt.Sprintf("%s_%v", "test_message", i))
 		go func() {
-			event, err := user3.User.CreateEvent(models.MsgSent, &message, &user2.User)
+			event, err := user3.User.CreateEvent(models.MSG_SENT, &message, &user2.User)
 			if err != nil {
 				fmt.Println(err)
 			}
 			esbU3.AcceptEvent(event)
-			// event.SendToChat(chat12)
+			// TODO: update chat
 		}()
 
 		// go func() {

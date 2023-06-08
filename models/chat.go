@@ -25,7 +25,13 @@ type Chat struct {
 var idCount = 0
 
 func (subscriber *EventSubscriber) NotifyCallback(event Event) {
-	fmt.Printf("Sender: %v, Target: %v, Receiver: %v, Time: %v, Message %s\n", event.SubjectID, event.TargetID, subscriber.User.ID, event.Data.Time, event.Data.Body)
+	fmt.Printf("EventType: %v, \n", event.EventType)
+	fmt.Printf("Sender: %v, Target: %v, Receiver: %v, Time: %v, Message %s\n", event.Sender.ID, event.Target.ID, subscriber.User.ID, event.Data.Time, event.Data.Body)
+
+	if event.EventType == MSG_SENT {
+		// initiate MsgReceived
+		subscriber.User.CreateEvent(MSG_RECEIVED, nil, &event.Sender)
+	}
 }
 
 // Creates a chat queue
