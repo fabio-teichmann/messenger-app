@@ -51,7 +51,7 @@ func (esb *EventSubjectBroker) ReadEvents() {
 			}
 		case event := <-esb.Queue:
 			// notify
-			esb.EventSubject.NotifySubscriber(event)
+			esb.EventSubject.NotifySubscriber(&event)
 			// fmt.Println(msg)
 		}
 	}

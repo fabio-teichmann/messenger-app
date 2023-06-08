@@ -44,6 +44,7 @@ func main() {
 			if err != nil {
 				fmt.Println(err)
 			}
+			event.Data.Sent = true
 			esbU3.AcceptEvent(event)
 			// TODO: update chat
 		}()
