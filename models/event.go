@@ -5,15 +5,16 @@ type EventType int
 
 // event types
 const (
-	UserOnline = iota
-	UserTyping
-	MsgSent
-	MsgReceived
+	USER_ONLINE = iota
+	USER_TYPING
+	MSG_SENT
+	MSG_RECEIVED
 )
 
 type Event struct {
 	SubjectID int       // on which queue to publish the message
-	TargetID  int       // which user should receive the message
+	Sender    User      // event origin
+	Target    User      // event destination
 	Data      Message   // contains payload
 	EventType EventType // to classify events
 }
