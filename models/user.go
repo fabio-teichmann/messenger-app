@@ -6,6 +6,7 @@ type User struct {
 	ID         int    `json:"id"`
 	Name       string `json:"name"`
 	ProfilePic bool   `json:"profile_pic"`
+	Chats      []Chat // list of conversations
 }
 
 func (user *User) CreateEventMessage(message *Message, target *User) (*Event, error) {
