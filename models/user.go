@@ -24,3 +24,19 @@ func (user *User) CreateEventMessage(message *Message, target *User) (*Event, er
 	}
 	return event, nil
 }
+
+func (user *User) CreateEvent(eventType EventType, message *Message, target *User) (*Event, error) {
+	if (eventType == MsgSent || eventType == MsgReceived) && message == nil {
+		return nil, errors.New("missing message")
+	}
+	if target == nil {
+		return nil, errors.New("no target defined")
+	}
+
+	return &Event{
+		SubjectID: user.ID,
+		TargetID:  target.ID,
+		Data:      *message,
+		EventType: eventType,
+	}, nil
+}

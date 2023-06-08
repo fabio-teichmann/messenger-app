@@ -40,7 +40,7 @@ func main() {
 	for _, i := range []int{1, 2, 3, 1, 2, 3} {
 		message := models.NewMessage(fmt.Sprintf("%s_%v", "test_message", i))
 		go func() {
-			event, err := user3.User.CreateEventMessage(&message, &user2.User)
+			event, err := user3.User.CreateEvent(models.MsgSent, &message, &user2.User)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -48,13 +48,13 @@ func main() {
 			// event.SendToChat(chat12)
 		}()
 
-		go func() {
-			event, err := user2.User.CreateEventMessage(&message, &user1.User)
-			if err != nil {
-				fmt.Println(err)
-			}
-			esbU2.AcceptEvent(event)
-		}()
+		// go func() {
+		// 	event, err := user2.User.CreateEventMessage(&message, &user1.User)
+		// 	if err != nil {
+		// 		fmt.Println(err)
+		// 	}
+		// 	esbU2.AcceptEvent(event)
+		// }()
 
 		// if i != 2 {
 		// 	event2, err := user1.User.CreateEventMessage(&message, &user3.User)
