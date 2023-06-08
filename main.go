@@ -26,13 +26,22 @@ func main() {
 	// send test messages
 	for _, i := range []int{1, 2, 3, 1, 2, 3} {
 		message := models.NewMessage(fmt.Sprintf("%s_%v", "test_message", i))
+		go func() {
+			event, err := user1.User.CreateEventMessage(&message, &user2.User)
+			if err != nil {
+				fmt.Println(err)
+			}
 
-		event, err := user1.User.CreateEventMessage(&message, &user3.User)
-		if err != nil {
-			fmt.Println(err)
+			event.SendToChat(chat12)
+		}()
+
+		if i != 2 {
+			event2, err := user1.User.CreateEventMessage(&message, &user3.User)
+			if err != nil {
+				fmt.Println(err)
+			}
+			event2.SendToChat(chat13)
 		}
-
-		event.SendToChat(chat13)
 		// event.SendToChat(chat12)
 		time.Sleep(1 * time.Second)
 	}

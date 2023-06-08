@@ -22,7 +22,7 @@ func (subject *EventSubject) RemoveSubscriber(sub EventSubscriber) {
 
 func (es *EventSubject) NotifySubscriber(event Event) {
 	es.Observers.Range(func(key interface{}, value interface{}) bool {
-		fmt.Println(es.ID, event.Data, key.(EventSubscriber).User)
+		// fmt.Println(es.ID, event.Data, key.(EventSubscriber).User)
 		if key == nil {
 			fmt.Printf("could not find matching Subscriber with id %v to event id: %v", event.TargetID, event.SubjectID)
 			return false
