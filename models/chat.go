@@ -11,9 +11,9 @@ type EventSubject struct {
 	Observers sync.Map
 }
 
-type EventSubscriber struct {
-	User User
-}
+// type EventSubscriber struct {
+// 	User User
+// }
 
 type Chat struct {
 	// Subscribers []*EventSubscriber
@@ -24,28 +24,28 @@ type Chat struct {
 
 var idCount = 0
 
-func (subscriber *EventSubscriber) NotifyCallback(event *Event) {
-	// fmt.Printf("EventType: %v, \n", event.EventType)
-	fmt.Printf("Sender: %v, Target: %v, Receiver: %v, Time: %v, Message %s\n", event.Sender.ID, event.Target.ID, subscriber.User.ID, event.Data.Time, event.Data.Body)
+// func (subscriber *EventSubscriber) NotifyCallback(event *Event) {
+// 	// fmt.Printf("EventType: %v, \n", event.EventType)
+// 	fmt.Printf("Sender: %v, Target: %v, Receiver: %v, Time: %v, Message %s\n", event.Sender.User.ID, event.Target.User.ID, subscriber.User.ID, event.Data.Time, event.Data.Body)
 
-	if event.EventType == MSG_SENT {
-		fmt.Printf("Event: MSG_SENT, Sender: %v, Target: %v\n", event.Sender, event.Target)
-		fmt.Printf("initiate MSG_RECEIVED event...\n")
-		// initiate MsgReceived
-		e, err := subscriber.User.CreateEvent(MSG_RECEIVED, &event.Data, &event.Sender)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		// Need ESB to accept event
-		fmt.Println(*e)
+// 	if event.EventType == MSG_SENT {
+// 		fmt.Printf("Event: MSG_SENT, Sender: %v, Target: %v\n", event.Sender, event.Target)
+// 		fmt.Printf("initiate MSG_RECEIVED event...\n")
+// 		// initiate MsgReceived
+// 		e, err := subscriber.CreateEvent(MSG_RECEIVED, &event.Data, &event.Sender)
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			return
+// 		}
+// 		// Need ESB to accept event
+// 		fmt.Println(*e)
 
-	} else if event.EventType == MSG_RECEIVED {
-		fmt.Printf("Event: MSG_RECEIVED, Sender: %v, Target: %v\n", event.Sender, event.Target)
-		// update message as Received
-		event.Data.Received = true
-	}
-}
+// 	} else if event.EventType == MSG_RECEIVED {
+// 		fmt.Printf("Event: MSG_RECEIVED, Sender: %v, Target: %v\n", event.Sender, event.Target)
+// 		// update message as Received
+// 		event.Data.Received = true
+// 	}
+// }
 
 // Creates a chat queue
 func (subscriber *EventSubscriber) CreateChat(subscribers []*EventSubscriber) Chat {

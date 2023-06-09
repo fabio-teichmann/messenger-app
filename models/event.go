@@ -12,11 +12,11 @@ const (
 )
 
 type Event struct {
-	SubjectID int       // on which queue to publish the message
-	Sender    User      // event origin
-	Target    User      // event destination
-	Data      Message   // contains payload
-	EventType EventType // to classify events
+	SubjectID int             // on which queue to publish the message
+	Sender    EventSubscriber // event origin
+	Target    EventSubscriber // event destination
+	Data      Message         // contains payload
+	EventType EventType       // to classify events
 }
 
 func (e *Event) SendToChat(chat Chat) {
