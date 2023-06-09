@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -12,7 +13,7 @@ type SubjectBroker interface {
 	// - accepting events to the Subject's queue
 	// - notify Subscribers about relevant events on
 	//   this Subject's queue
-	AcceptEvent(Event)
+	AcceptEvent(Event) error
 	ReadEvents()
 }
 
@@ -30,12 +31,13 @@ func NewEventSubjectBroker(es *EventSubject) EventSubjectBroker {
 	}
 }
 
-func (esb *EventSubjectBroker) AcceptEvent(event *Event) {
+func (esb *EventSubjectBroker) AcceptEvent(event *Event) error {
 	if event == nil {
-		fmt.Println("event is undefined")
-		return
+		// fmt.Println("event is undefined")
+		return errors.New("event is undefined")
 	}
 	esb.Queue <- *event
+	return nil
 }
 
 func (esb *EventSubjectBroker) ReadEvents() {

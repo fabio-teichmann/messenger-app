@@ -2,9 +2,9 @@ package models
 
 import "fmt"
 
-type Subscriber interface {
-	NotifyCallback(Event)
-}
+// type Subscriber interface {
+// 	NotifyCallback(Event)
+// }
 
 type Subject interface {
 	AddSubscriber(Subscriber)
@@ -34,7 +34,7 @@ func (es *EventSubject) NotifySubscriber(event *Event) {
 		}
 		es := key.(*EventSubscriber)
 
-		if es.User.ID == event.Target.ID {
+		if es.User.ID == event.Target.User.ID {
 			// found matching subscriber
 			es.NotifyCallback(event)
 			return false
