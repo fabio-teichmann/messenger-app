@@ -3,9 +3,9 @@ package models
 import "time"
 
 type Message struct {
-	ID         int    // to identify messages in history
+	ID         int    `bson:"message_id"` // to identify messages in history
 	Body       string `json:"body"`
-	Attachment []byte `json:"attachmet"`
+	Attachment []byte `json:"attachmet" bson:"omitempty"`
 	Time       time.Time
 	Sent       bool
 	Received   bool
