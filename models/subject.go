@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 // type Subscriber interface {
 // 	NotifyCallback(Event)
@@ -10,6 +13,12 @@ type Subject interface {
 	AddSubscriber(Subscriber)
 	RemoveSubscriber(Subscriber)
 	NotifySubscriber(Event)
+}
+
+type EventSubject struct {
+	ID int
+	// Queue     chan Event
+	Observers sync.Map
 }
 
 func NewEventSubject(id int) *EventSubject {
@@ -29,14 +38,14 @@ func (es *EventSubject) NotifySubscriber(event *Event) {
 	es.Observers.Range(func(key interface{}, value interface{}) bool {
 		// fmt.Println(es.ID, event.Data, key.(EventSubscriber).User)
 		if key == nil {
-			fmt.Printf("could not find matching Subscriber %s to event: %s", event.Target, event)
+			fmt.Printf("could not find matching Subscriber %s to event: %v", event.Target.User.Name, event)
 			return false
 		}
-		es := key.(*EventSubscriber)
+		subscriber := key.(*EventSubscriber)
 
-		if es.User.ID == event.Target.User.ID {
+		if subscriber.User.ID == event.Target.User.ID {
 			// found matching subscriber
-			es.NotifyCallback(event)
+			subscriber.NotifyCallback(event)
 			return false
 		}
 		return true

@@ -5,11 +5,11 @@ import (
 	"sync"
 )
 
-type EventSubject struct {
-	ID int
-	// Queue     chan Event
-	Observers sync.Map
-}
+// type EventSubject struct {
+// 	ID int
+// 	// Queue     chan Event
+// 	Observers sync.Map
+// }
 
 // type EventSubscriber struct {
 // 	User User
