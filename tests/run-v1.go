@@ -6,6 +6,24 @@ import (
 	"time"
 )
 
+func CreateTestEvent(message string) *models.Event {
+	var user1 = models.EventSubscriber{User: models.User{ID: 1, Name: "user1"}}
+	var user2 = models.EventSubscriber{User: models.User{ID: 2, Name: "user2"}}
+
+	var esbU1 = models.NewEventSubjectBroker(models.NewEventSubject(1))
+	esbU1.EventSubject.AddSubscriber(&user2)
+
+	var esbU2 = models.NewEventSubjectBroker(models.NewEventSubject(2))
+	esbU2.EventSubject.AddSubscriber(&user1)
+
+	msg := models.NewMessage(message)
+	event, err := user1.CreateEvent(models.MSG_SENT, &msg, &user2)
+	if err != nil {
+		panic(err)
+	}
+	return event
+}
+
 func RunV1() {
 	// initiate control channel for graceful shutdown
 	// controlChan := make(chan models.ControlMsg, 2)
