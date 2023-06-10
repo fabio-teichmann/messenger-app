@@ -11,9 +11,9 @@ type Subscriber interface {
 }
 
 type User struct {
-	ID         int    `json:"id"`
-	Name       string `json:"name"`
-	ProfilePic bool   `json:"profile_pic"`
+	ID         int    `json:"id" bson:"id"`
+	Name       string `json:"name" bson:"name"`
+	ProfilePic bool   `json:"profile_pic" bson:"profile_pic,omitempty"`
 	// Chats      []Chat // list of conversations
 }
 
