@@ -51,6 +51,7 @@ func main() {
 			if err != nil {
 				fmt.Println(err)
 			}
+			fmt.Println()
 			// TODO: update chat
 		}()
 
