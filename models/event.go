@@ -32,7 +32,7 @@ func (e *Event) SendToChat(chat Chat) {
 	chat.History = append(chat.History, e.Data)
 }
 
-func (ac AppControler) GetEventByMessageID(ctx context.Context, messageId int) (*Event, error) {
+func (ac *AppControler) GetEventByMessageId(ctx context.Context, messageId int) (*Event, error) {
 	results := []Event{}
 
 	client := ac.DB
@@ -40,13 +40,13 @@ func (ac AppControler) GetEventByMessageID(ctx context.Context, messageId int) (
 	coll := client.Database("messenger-test").Collection("events")
 
 	// filter := bson.D{{"subject_id"}}
-	cur, err := coll.Find(ctx, bson.D{{"message_id", messageId}})
+	cursor, err := coll.Find(ctx, bson.D{{"message_id", messageId}})
 	if err != nil {
 		fmt.Println("no message for given id")
 		return nil, err
 	}
 
-	if err = cur.All(ctx, &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		fmt.Print("unable to read results")
 		return nil, err
 	}
@@ -57,4 +57,37 @@ func (ac AppControler) GetEventByMessageID(ctx context.Context, messageId int) (
 	}
 
 	return &results[0], nil
+}
+
+func (ac *AppControler) CountMessagesBySubjectId(ctx context.Context, subjectId int) (int, error) {
+
+	client := ac.DB
+
+	coll := client.Database("messenger-test").Collection("events")
+
+	filter := bson.D{{"subject_id", subjectId}}
+	count, err := coll.CountDocuments(ctx, filter)
+	if err != nil {
+		return -1, err
+	}
+	return int(count), nil
+}
+
+func (ac *AppControler) CountMessagesSentByUser(ctx context.Context, user *User) (int, error) {
+	results := []Event{}
+
+	client := ac.DB
+
+	coll := client.Database("messenger-test").Collection("events")
+
+	filter := bson.D{{"sender.user.id", user.ID}}
+	cursor, err := coll.Find(ctx, filter)
+	if err != nil {
+		return -1, err
+	}
+	if err = cursor.All(ctx, &results); err != nil {
+		return -1, err
+	}
+
+	return len(results), nil
 }
