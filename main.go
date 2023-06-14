@@ -43,26 +43,60 @@ func main() {
 
 	ac := models.NewAppControler(client)
 
-	event, err := ac.GetEventByMessageID(ctx, 0)
+	event, err := ac.GetEventByMessageId(ctx, 0)
 	if err != nil {
 		fmt.Println(err)
 	}
 	res, _ := json.Marshal(event)
 	fmt.Println("MessageID 0:", string(res))
 
-	event1, err := ac.GetEventByMessageID(ctx, 1)
+	event1, err := ac.GetEventByMessageId(ctx, 1)
 	if err != nil {
 		fmt.Println(err)
 	}
 	res, _ = json.Marshal(event1)
 	fmt.Println("MessageID 1:", string(res))
 
-	event2, err := ac.GetEventByMessageID(ctx, 2)
+	event2, err := ac.GetEventByMessageId(ctx, 2)
 	if err != nil {
 		fmt.Println(err)
 	}
 	res, _ = json.Marshal(event2)
 	fmt.Println("MessageID 2:", string(res))
+
+	count, err := ac.CountMessagesBySubjectId(ctx, 0)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("# messages id 0:", count)
+
+	count, err = ac.CountMessagesBySubjectId(ctx, 1)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("# messages id 1:", count)
+
+	user1 := models.User{ID: 1, Name: "user1"}
+	user2 := models.User{ID: 2, Name: "user2"}
+	user3 := models.User{ID: 3, Name: "user3"}
+
+	count, err = ac.CountMessagesSentByUser(ctx, &user1)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("# messages sender id 1:", count)
+
+	count, err = ac.CountMessagesSentByUser(ctx, &user2)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("# messages sender id 2:", count)
+
+	count, err = ac.CountMessagesSentByUser(ctx, &user3)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("# messages sender id 3:", count)
 
 	// event := tests.CreateTestEvent("message string")
 
