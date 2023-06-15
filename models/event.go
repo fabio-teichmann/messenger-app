@@ -37,7 +37,7 @@ func (ac *AppControler) GetEventByMessageId(ctx context.Context, messageId int) 
 
 	client := ac.DB
 
-	coll := client.Database("messenger-test").Collection("events")
+	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
 
 	// filter := bson.D{{"subject_id"}}
 	cursor, err := coll.Find(ctx, bson.D{{"message_id", messageId}})
@@ -63,7 +63,7 @@ func (ac *AppControler) CountMessagesBySubjectId(ctx context.Context, subjectId 
 
 	client := ac.DB
 
-	coll := client.Database("messenger-test").Collection("events")
+	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
 
 	filter := bson.D{{"subject_id", subjectId}}
 	count, err := coll.CountDocuments(ctx, filter)
@@ -78,7 +78,7 @@ func (ac *AppControler) CountMessagesSentByUser(ctx context.Context, user *User)
 
 	client := ac.DB
 
-	coll := client.Database("messenger-test").Collection("events")
+	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
 
 	filter := bson.D{{"sender.user.id", user.ID}}
 	cursor, err := coll.Find(ctx, filter)
@@ -90,4 +90,29 @@ func (ac *AppControler) CountMessagesSentByUser(ctx context.Context, user *User)
 	}
 
 	return len(results), nil
+}
+
+func (ac *AppControler) AddEvent(ctx context.Context, event *Event) error {
+
+	client := ac.DB
+	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
+
+	result, err := coll.InsertOne(ctx, event)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Inserted document with _id: %v\n", result.InsertedID)
+	return nil
+}
+
+func (ac *AppControler) RemoveEventByMessageId(ctx context.Context, msgId uint32) error {
+	client := ac.DB
+	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
+
+	result, err := coll.DeleteOne(ctx, bson.D{{"message_id", msgId}})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Removed %v documents\n", result.DeletedCount)
+	return nil
 }
