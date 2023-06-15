@@ -40,6 +40,9 @@ func main() {
 		fmt.Println("connection to mongodb not established")
 		panic(err)
 	}
+	ctx = context.WithValue(ctx, models.TestDBKey, os.Getenv("TEST_MONGODB_NAME"))
+	ctx = context.WithValue(ctx, models.TestCollectionKey, os.Getenv("TEST_COLLECTION_EVENTS"))
+	// fmt.Printf("context values - database: %v; collection: %v\n", ctx.Value(models.TestDBKey), ctx.Value(models.TestCollectionKey))
 
 	ac := models.NewAppControler(client)
 
@@ -98,6 +101,28 @@ func main() {
 	}
 	fmt.Println("# messages sender id 3:", count)
 
+	// Create message
+	msg := models.NewMessage("Test Insert")
+
+	event, err = models.NewEventSubscriber(user3).CreateEvent(models.MSG_SENT, &msg, models.NewEventSubscriber(user1))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = ac.RemoveEventByMessageId(ctx, msg.ID)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = ac.AddEvent(ctx, event)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = ac.RemoveEventByMessageId(ctx, msg.ID)
+	if err != nil {
+		fmt.Println(err)
+	}
 	// event := tests.CreateTestEvent("message string")
 
 	// coll := client.Database("messenger-test").Collection("events")
