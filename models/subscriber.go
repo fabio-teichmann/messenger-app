@@ -21,6 +21,10 @@ type EventSubscriber struct {
 	User User
 }
 
+func NewEventSubscriber(user User) *EventSubscriber {
+	return &EventSubscriber{User: user}
+}
+
 func (subscriber *EventSubscriber) NotifyCallback(event *Event) {
 	// fmt.Printf("EventType: %v, \n", event.EventType)
 	fmt.Printf("Sender: %v, Target: %v, Receiver: %v, Time: %v, Message %s\n", event.Sender.User.ID, event.Target.User.ID, subscriber.User.ID, event.Data.Time, event.Data.Body)
