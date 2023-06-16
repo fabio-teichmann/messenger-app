@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // EventType
@@ -20,11 +21,12 @@ const (
 )
 
 type Event struct {
-	SubjectID int             `bson:"subject_id"`  // on which queue to publish the message
-	Sender    EventSubscriber `bson:"sender"`      // event origin
-	Target    EventSubscriber `bson:"target"`      // event destination
-	Data      Message         `bson:"data,inline"` // contains payload
-	EventType EventType       `bson:"event_type"`  // to classify events
+	ID        primitive.ObjectID `bson:"_id"`
+	SubjectID int                `bson:"subject_id"` // on which queue to publish the message
+	Sender    EventSubscriber    `bson:"sender"`     // event origin
+	Target    EventSubscriber    `bson:"target"`     // event destination
+	Data      Message            `bson:"data"`       // contains payload
+	EventType EventType          `bson:"event_type"` // to classify events
 }
 
 func (e *Event) SendToChat(chat Chat) {
@@ -32,7 +34,7 @@ func (e *Event) SendToChat(chat Chat) {
 	chat.History = append(chat.History, e.Data)
 }
 
-func (ac *AppControler) GetEventByMessageId(ctx context.Context, messageId int) (*Event, error) {
+func (ac *AppControler) GetEventByMessageId(ctx context.Context, messageId uint32) (*Event, error) {
 	results := []Event{}
 
 	client := ac.DB
@@ -40,7 +42,7 @@ func (ac *AppControler) GetEventByMessageId(ctx context.Context, messageId int) 
 	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
 
 	// filter := bson.D{{"subject_id"}}
-	cursor, err := coll.Find(ctx, bson.D{{"message_id", messageId}})
+	cursor, err := coll.Find(ctx, bson.D{{Key: "data.message_id", Value: messageId}})
 	if err != nil {
 		fmt.Println("no message for given id")
 		return nil, err
@@ -65,7 +67,7 @@ func (ac *AppControler) CountMessagesBySubjectId(ctx context.Context, subjectId 
 
 	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
 
-	filter := bson.D{{"subject_id", subjectId}}
+	filter := bson.D{{Key: "subject_id", Value: subjectId}}
 	count, err := coll.CountDocuments(ctx, filter)
 	if err != nil {
 		return -1, err
@@ -80,7 +82,7 @@ func (ac *AppControler) CountMessagesSentByUser(ctx context.Context, user *User)
 
 	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
 
-	filter := bson.D{{"sender.user.id", user.ID}}
+	filter := bson.D{{Key: "sender.user.id", Value: user.ID}}
 	cursor, err := coll.Find(ctx, filter)
 	if err != nil {
 		return -1, err
@@ -109,10 +111,33 @@ func (ac *AppControler) RemoveEventByMessageId(ctx context.Context, msgId uint32
 	client := ac.DB
 	coll := client.Database(ctx.Value(TestDBKey).(string)).Collection(ctx.Value(TestCollectionKey).(string))
 
-	result, err := coll.DeleteOne(ctx, bson.D{{"message_id", msgId}})
+	result, err := coll.DeleteOne(ctx, bson.D{{Key: "data.message_id", Value: msgId}})
 	if err != nil {
 		return err
 	}
 	fmt.Printf("Removed %v documents\n", result.DeletedCount)
+	return nil
+}
+
+func (ac *AppControler) UpdateEventMessageByMessageId(ctx context.Context, msgId uint32, msg Message) error {
+	client := ac.DB
+	dbKey, collKey := fmt.Sprintf("%v", ctx.Value(TestDBKey)), fmt.Sprintf("%v", ctx.Value(TestCollectionKey))
+
+	coll := client.Database(dbKey).Collection(collKey)
+
+	event, err := ac.GetEventByMessageId(ctx, msgId)
+	if err != nil {
+		return err
+	}
+	fmt.Println(event)
+
+	// update := bson.D{{"$set", bson.D{{"message_id", msg.ID}, {"body", msg.Body}}}}
+	update := bson.D{{"$set", bson.D{{"data", msg}}}}
+
+	result, err := coll.UpdateOne(ctx, bson.D{{Key: "_id", Value: event.ID}}, update)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("updated %v event(s)", result.ModifiedCount)
 	return nil
 }

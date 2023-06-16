@@ -3,6 +3,8 @@ package models
 import (
 	"errors"
 	"fmt"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Subscriber interface {
@@ -56,6 +58,7 @@ func (es *EventSubscriber) CreateEvent(eventType EventType, message *Message, ta
 	}
 
 	return &Event{
+		ID:        primitive.NewObjectID(),
 		SubjectID: 0,
 		Sender:    *es,
 		Target:    *target,
