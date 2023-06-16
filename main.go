@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"messenger-app/models"
@@ -46,44 +45,44 @@ func main() {
 
 	ac := models.NewAppControler(client)
 
-	event, err := ac.GetEventByMessageId(ctx, 0)
-	if err != nil {
-		fmt.Println(err)
-	}
-	res, _ := json.Marshal(event)
-	fmt.Println("MessageID 0:", string(res))
+	// event, err := ac.GetEventByMessageId(ctx, 0)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// res, _ := json.Marshal(event)
+	// fmt.Println("MessageID 0:", string(res))
 
-	event1, err := ac.GetEventByMessageId(ctx, 1)
-	if err != nil {
-		fmt.Println(err)
-	}
-	res, _ = json.Marshal(event1)
-	fmt.Println("MessageID 1:", string(res))
+	// event1, err := ac.GetEventByMessageId(ctx, 1)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// res, _ = json.Marshal(event1)
+	// fmt.Println("MessageID 1:", string(res))
 
-	event2, err := ac.GetEventByMessageId(ctx, 2)
-	if err != nil {
-		fmt.Println(err)
-	}
-	res, _ = json.Marshal(event2)
-	fmt.Println("MessageID 2:", string(res))
+	// event2, err := ac.GetEventByMessageId(ctx, 2)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// res, _ = json.Marshal(event2)
+	// fmt.Println("MessageID 2:", string(res))
 
-	count, err := ac.CountMessagesBySubjectId(ctx, 0)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("# messages id 0:", count)
+	// count, err := ac.CountMessagesBySubjectId(ctx, 0)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println("# messages id 0:", count)
 
-	count, err = ac.CountMessagesBySubjectId(ctx, 1)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("# messages id 1:", count)
+	// count, err = ac.CountMessagesBySubjectId(ctx, 1)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println("# messages id 1:", count)
 
 	user1 := models.User{ID: 1, Name: "user1"}
 	user2 := models.User{ID: 2, Name: "user2"}
 	user3 := models.User{ID: 3, Name: "user3"}
 
-	count, err = ac.CountMessagesSentByUser(ctx, &user1)
+	count, err := ac.CountMessagesSentByUser(ctx, &user1)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -104,7 +103,7 @@ func main() {
 	// Create message
 	msg := models.NewMessage("Test Insert")
 
-	event, err = models.NewEventSubscriber(user3).CreateEvent(models.MSG_SENT, &msg, models.NewEventSubscriber(user1))
+	event, err := models.NewEventSubscriber(user3).CreateEvent(models.MSG_SENT, &msg, models.NewEventSubscriber(user1))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -118,11 +117,16 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	err = ac.RemoveEventByMessageId(ctx, msg.ID)
+	msgUpdate := models.NewMessage("Updated Insert")
+	err = ac.UpdateEventMessageByMessageId(ctx, msg.ID, msgUpdate)
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	// err = ac.RemoveEventByMessageId(ctx, msg.ID)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 	// event := tests.CreateTestEvent("message string")
 
 	// coll := client.Database("messenger-test").Collection("events")
