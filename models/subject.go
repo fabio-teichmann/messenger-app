@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -34,24 +33,24 @@ func (subject *EventSubject) RemoveSubscriber(sub EventSubscriber) {
 	subject.Observers.Delete(sub)
 }
 
-func (es *EventSubject) NotifySubscriber(event *Event) {
-	es.Observers.Range(func(key interface{}, value interface{}) bool {
-		// fmt.Println(es.ID, event.Data, key.(EventSubscriber).User)
-		if key == nil {
-			fmt.Printf("could not find matching Subscriber %s to event: %v", event.Target.User.Name, event)
-			return false
-		}
-		subscriber := key.(*EventSubscriber)
+// func (es *EventSubject) NotifySubscriber(event *Event) {
+// 	es.Observers.Range(func(key interface{}, value interface{}) bool {
+// 		// fmt.Println(es.ID, event.Data, key.(EventSubscriber).User)
+// 		if key == nil {
+// 			fmt.Printf("could not find matching Subscriber %s to event: %v", event.Target.User.Name, event)
+// 			return false
+// 		}
+// 		subscriber := key.(*EventSubscriber)
 
-		if subscriber.User.ID == event.Target.User.ID {
-			// found matching subscriber
-			subscriber.NotifyCallback(event)
-			return false
-		}
-		return true
-	})
-	// fmt.Printf("could not find matching Subscriber with id %v to event id: %v\n", event.TargetID, event.SubjectID)
-}
+// 		if subscriber.User.ID == event.Target.User.ID {
+// 			// found matching subscriber
+// 			subscriber.NotifyCallback(event)
+// 			return false
+// 		}
+// 		return true
+// 	})
+// 	// fmt.Printf("could not find matching Subscriber with id %v to event id: %v\n", event.TargetID, event.SubjectID)
+// }
 
 // func (es *EventSubject) AcceptEvent(event *Event) {
 // 	if event == nil {
