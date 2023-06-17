@@ -1,11 +1,74 @@
 package models
 
-import "go.mongodb.org/mongo-driver/mongo"
+import (
+	"context"
+	"fmt"
+
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 type AppControler struct {
-	DB *mongo.Client
+	DB  *mongo.Client
+	ESB *EventSubjectBroker
+	// channels
+	ControlChan chan ControlMsg
+	MsgSent     *EventSubjectNew
+	MsgRcvd     *EventSubjectNew
 }
 
-func NewAppControler(client *mongo.Client) AppControler {
-	return AppControler{DB: client}
+func NewAppControler(client *mongo.Client, esb *EventSubjectBroker) AppControler {
+	return AppControler{DB: client, ESB: esb}
+}
+
+func InitializeAppControler(client *mongo.Client) *AppControler {
+	msgSent := NewEventSubject_(MSG_SENT)
+	msgRcvd := NewEventSubject_(MSG_RECEIVED)
+	return &AppControler{
+		DB:          client,
+		ControlChan: make(chan ControlMsg),
+		MsgSent:     msgSent,
+		MsgRcvd:     msgRcvd,
+	}
+}
+
+func (ac *AppControler) AcceptEvent(event *Event) {
+	if event.SubjectID == MSG_SENT {
+		go func() {
+			ac.MsgSent.Queue <- *event
+		}()
+	} else if event.SubjectID == MSG_RECEIVED {
+		go func() { ac.MsgRcvd.Queue <- *event }()
+	} else {
+		fmt.Printf("unknown event subject %s\n", event.SubjectID)
+	}
+}
+
+func (ac *AppControler) ReadEventMessages(ctx context.Context) {
+	fmt.Println("Listening to events...")
+	for {
+		select {
+		case msg := <-ac.ControlChan:
+			switch msg {
+			case DoExit:
+				fmt.Printf("exit read events\n")
+				ac.ESB.ControlChan <- ExitOK
+				return
+			}
+		case event := <-ac.MsgSent.Queue:
+			// event, err := ac.GetEventById(ctx, eventMsg.ID)
+			// if err != nil {
+			// 	fmt.Printf("error ocurred reading MsgSent events: %s", err)
+			// 	continue
+			// }
+			// notify
+			ac.MsgSent.NotifySubscriber(ctx, ac, &event)
+			// ac.ESB.EventSubject.NotifySubscriber(event)
+			// fmt.Println(msg)
+
+		case event := <-ac.MsgRcvd.Queue:
+			// notify
+			ac.MsgRcvd.NotifySubscriber(ctx, ac, &event)
+		}
+
+	}
 }

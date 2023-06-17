@@ -129,12 +129,11 @@ func (ac *AppControler) UpdateEventMessageByMessageId(ctx context.Context, msgId
 	if err != nil {
 		return err
 	}
-	fmt.Println(event)
 
-	// update := bson.D{{"$set", bson.D{{"message_id", msg.ID}, {"body", msg.Body}}}}
-	update := bson.D{{"$set", bson.D{{"data", msg}}}}
+	filter := bson.D{{Key: "_id", Value: event.ID}}
+	update := bson.D{{"$set", bson.D{{"data", msg}}}} // replace the message within event
 
-	result, err := coll.UpdateOne(ctx, bson.D{{Key: "_id", Value: event.ID}}, update)
+	result, err := coll.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
