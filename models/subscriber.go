@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -20,32 +21,36 @@ type User struct {
 }
 
 type EventSubscriber struct {
-	User User
+	User
 }
 
 func NewEventSubscriber(user User) *EventSubscriber {
 	return &EventSubscriber{User: user}
 }
 
-func (subscriber *EventSubscriber) NotifyCallback(event *Event) {
+func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppControler, event *Event) {
 	// fmt.Printf("EventType: %v, \n", event.EventType)
-	fmt.Printf("Sender: %v, Target: %v, Receiver: %v, Time: %v, Message %s\n", event.Sender.User.ID, event.Target.User.ID, subscriber.User.ID, event.Data.Time, event.Data.Body)
+	fmt.Printf("Sender: %v, Target: %v, Receiver: %v, Message %s\n", event.Sender.User.ID, event.Target.User.ID, subscriber.User.ID, event.Data.Body)
 
-	if event.EventType == MSG_SENT {
+	if event.SubjectID == MSG_SENT {
 		fmt.Printf("Event: MSG_SENT, Sender: %v, Target: %v\n", event.Sender, event.Target)
 		fmt.Printf("initiate MSG_RECEIVED event...\n")
 		// initiate MsgReceived
-		e, err := subscriber.CreateEvent(MSG_RECEIVED, &event.Data, &event.Sender)
+		fmt.Println(event)
+		err := ac.UpdateEventMessageToSentById(ctx, event.ID)
 		if err != nil {
 			fmt.Println(err)
 		}
-		// Need ESB to accept event
-		fmt.Println(*e)
+		event.SubjectID = MSG_RECEIVED
+		go func() { ac.MsgRcvd.Queue <- *event }()
 
-	} else if event.EventType == MSG_RECEIVED {
+	} else if event.SubjectID == MSG_RECEIVED {
 		fmt.Printf("Event: MSG_RECEIVED, Sender: %v, Target: %v\n", event.Sender, event.Target)
 		// update message as Received
-		event.Data.Received = true
+		err := ac.UpdateEventMessageToRcvdById(ctx, event.ID)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -59,43 +64,10 @@ func (es *EventSubscriber) CreateEvent(eventType EventType, message *Message, ta
 
 	return &Event{
 		ID:        primitive.NewObjectID(),
-		SubjectID: 0,
+		SubjectID: eventType,
 		Sender:    *es,
 		Target:    *target,
 		Data:      *message,
-		EventType: eventType,
+		// EventType: eventType,
 	}, nil
 }
-
-// func (user *User) CreateEventMessage(message *Message, target *User) (*Event, error) {
-// 	if message == nil {
-// 		return nil, errors.New("missing message")
-// 	}
-// 	if target == nil {
-// 		return nil, errors.New("no target defined")
-// 	}
-
-// 	event := &Event{
-// 		Sender: *user,
-// 		Target: *target,
-// 		Data:   *message,
-// 	}
-// 	return event, nil
-// }
-
-// func (user *User) CreateEvent(eventType EventType, message *Message, target *User) (*Event, error) {
-// 	if eventType == MSG_SENT && message == nil {
-// 		return nil, errors.New("missing message")
-// 	}
-// 	if target == nil {
-// 		return nil, errors.New("no target defined")
-// 	}
-
-// 	return &Event{
-// 		SubjectID: 0,
-// 		Sender:    *user,
-// 		Target:    *target,
-// 		Data:      *message,
-// 		EventType: eventType,
-// 	}, nil
-// }

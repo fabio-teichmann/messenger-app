@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -78,19 +77,19 @@ const (
 	ExitOK
 )
 
-func (chat *Chat) ReadMessages(control chan ControlMsg) {
+// func (chat *Chat) ReadMessages(control chan ControlMsg) {
 
-	for {
-		select {
-		case msg := <-control:
-			switch msg {
-			case DoExit:
-				fmt.Println("exit read message")
-				control <- ExitOK
-				return
-			}
-		case message := <-chat.Chat:
-			chat.Subject.NotifySubscriber(&message)
-		}
-	}
-}
+// 	for {
+// 		select {
+// 		case msg := <-control:
+// 			switch msg {
+// 			case DoExit:
+// 				fmt.Println("exit read message")
+// 				control <- ExitOK
+// 				return
+// 			}
+// 		case message := <-chat.Chat:
+// 			chat.Subject.NotifySubscriber(&message)
+// 		}
+// 	}
+// }

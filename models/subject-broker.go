@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"fmt"
 )
@@ -31,16 +32,16 @@ func NewEventSubjectBroker(es *EventSubject) EventSubjectBroker {
 	}
 }
 
-func (esb *EventSubjectBroker) AcceptEvent(event *Event) error {
+func (esb *EventSubjectBroker) AcceptEventMessage(event *Event) error {
 	if event == nil {
 		// fmt.Println("event is undefined")
-		return errors.New("event is undefined")
+		return errors.New("event message is undefined")
 	}
 	esb.Queue <- *event
 	return nil
 }
 
-func (esb *EventSubjectBroker) ReadEvents() {
+func (esb *EventSubjectBroker) ReadEventMessages(ctx context.Context) {
 
 	for {
 		select {
@@ -53,8 +54,8 @@ func (esb *EventSubjectBroker) ReadEvents() {
 			}
 		case event := <-esb.Queue:
 			// notify
-			esb.EventSubject.NotifySubscriber(&event)
-			// fmt.Println(msg)
+			// esb.EventSubject.NotifySubscriber(&event)
+			fmt.Println(event)
 		}
 	}
 }

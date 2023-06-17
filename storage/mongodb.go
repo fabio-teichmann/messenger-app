@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,6 +17,7 @@ type MongoConfig struct {
 }
 
 func NewMongoConnection(config *MongoConfig) (*mongo.Client, func(), error) {
+	fmt.Println("Connecting to MongoDB...")
 	uri := fmt.Sprintf(
 		"mongodb+srv://%s:%s@%s/?retryWrites=true&w=majority",
 		config.User, config.Password, config.DBName,
@@ -27,7 +27,7 @@ func NewMongoConnection(config *MongoConfig) (*mongo.Client, func(), error) {
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
 	// instanciate MongoDB
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	client, err := mongo.Connect(ctx, opts)
 
