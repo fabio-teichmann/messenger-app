@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"messenger-app/util"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -14,7 +15,7 @@ type Subscriber interface {
 }
 
 type User struct {
-	ID         int    `json:"id" bson:"id"`
+	ID         uint32 `json:"id" bson:"_id"`
 	Name       string `json:"name" bson:"name"`
 	ProfilePic bool   `json:"profile_pic" bson:"profile_pic,omitempty"`
 	// Chats      []Chat // list of conversations
@@ -26,6 +27,28 @@ type EventSubscriber struct {
 
 func NewEventSubscriber(user User) *EventSubscriber {
 	return &EventSubscriber{User: user}
+}
+
+func NewEventSubscriberByName(userName string) *EventSubscriber {
+	hash := util.CreateHash([]byte(userName))
+	return &EventSubscriber{
+		User{
+			ID:   hash,
+			Name: userName,
+		},
+	}
+}
+
+func NewEventSubscriberWithEvent(userName string) (*EventSubscriber, *Event) {
+	es := NewEventSubscriberByName(userName)
+
+	event, err := es.CreateEvent(NEW_USER, &Message{Body: "new user"}, nil)
+	if err != nil {
+		fmt.Println("error occurred creating event:", err)
+		return es, nil
+	}
+
+	return es, event
 }
 
 func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppControler, event *Event) {
@@ -57,6 +80,14 @@ func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppCo
 func (es *EventSubscriber) CreateEvent(eventType EventType, message *Message, target *EventSubscriber) (*Event, error) {
 	if eventType == MSG_SENT && message == nil {
 		return nil, errors.New("missing message")
+	}
+	if eventType == NEW_USER {
+		return &Event{
+			ID:        primitive.NewObjectID(),
+			SubjectID: eventType,
+			Sender:    *es,
+			Data:      *message,
+		}, nil
 	}
 	if target == nil {
 		return nil, errors.New("no target defined")

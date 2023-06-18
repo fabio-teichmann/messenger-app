@@ -47,16 +47,32 @@ func main() {
 
 	go ac.ReadEventMessages(ctx)
 
-	sub1 := models.NewEventSubscriber(models.User{ID: 1, Name: "user1"})
-	sub2 := models.NewEventSubscriber(models.User{ID: 2, Name: "user2"})
+	// sub1 := models.NewEventSubscriber(models.User{ID: 1, Name: "user1"})
 
-	ac.MsgSent.AddSubscriber(sub1)
-	ac.MsgSent.AddSubscriber(sub2)
+	sub1, event := models.NewEventSubscriberWithEvent("user1")
+	if event != nil {
+		// err = ac.AddEvent(ctx, event)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+		ac.AcceptEvent(event)
+	}
+	sub2, event := models.NewEventSubscriberWithEvent("user2")
+	if event != nil {
+		// err = ac.AddEvent(ctx, event)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+		ac.AcceptEvent(event)
+	}
 
-	ac.MsgRcvd.AddSubscriber(sub1)
-	ac.MsgRcvd.AddSubscriber(sub2)
+	// ac.MsgSent.AddSubscriber(sub1)
+	// ac.MsgSent.AddSubscriber(sub2)
 
-	event, err := sub1.CreateEvent(models.MSG_SENT, models.NewMessage("Test message"), sub2)
+	// ac.MsgRcvd.AddSubscriber(sub1)
+	// ac.MsgRcvd.AddSubscriber(sub2)
+
+	event, err = sub1.CreateEvent(models.MSG_SENT, models.NewMessage("Test message"), sub2)
 	if err != nil {
 		fmt.Println(err)
 	}
