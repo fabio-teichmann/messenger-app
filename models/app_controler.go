@@ -14,6 +14,7 @@ type AppControler struct {
 	ControlChan chan ControlMsg
 	MsgSent     *EventSubjectNew
 	MsgRcvd     *EventSubjectNew
+	NewUser     *EventSubjectNew // auto-subscription
 }
 
 func NewAppControler(client *mongo.Client, esb *EventSubjectBroker) AppControler {
@@ -23,23 +24,28 @@ func NewAppControler(client *mongo.Client, esb *EventSubjectBroker) AppControler
 func InitializeAppControler(client *mongo.Client) *AppControler {
 	msgSent := NewEventSubject_(MSG_SENT)
 	msgRcvd := NewEventSubject_(MSG_RECEIVED)
+	newUser := NewEventSubject_(NEW_USER)
 	return &AppControler{
 		DB:          client,
 		ControlChan: make(chan ControlMsg),
 		MsgSent:     msgSent,
 		MsgRcvd:     msgRcvd,
+		NewUser:     newUser,
 	}
 }
 
 func (ac *AppControler) AcceptEvent(event *Event) {
 	if event.SubjectID == MSG_SENT {
-		go func() {
-			ac.MsgSent.Queue <- *event
-		}()
+		go func() { ac.MsgSent.Queue <- *event }()
+
 	} else if event.SubjectID == MSG_RECEIVED {
 		go func() { ac.MsgRcvd.Queue <- *event }()
+
+	} else if event.SubjectID == NEW_USER {
+		go func() { ac.NewUser.Queue <- *event }()
+
 	} else {
-		fmt.Printf("unknown event subject %s\n", event.SubjectID)
+		fmt.Printf("unknown event subject %v\n", event.SubjectID)
 	}
 }
 
@@ -68,6 +74,12 @@ func (ac *AppControler) ReadEventMessages(ctx context.Context) {
 		case event := <-ac.MsgRcvd.Queue:
 			// notify
 			ac.MsgRcvd.NotifySubscriber(ctx, ac, &event)
+
+		case event := <-ac.NewUser.Queue:
+			fmt.Printf("Subscribing user %s to channels...\n", event.Sender.Name)
+			// subscribe user to all required channels
+			ac.MsgSent.AddSubscriber(&event.Sender)
+			ac.MsgRcvd.AddSubscriber(&event.Sender)
 		}
 
 	}
