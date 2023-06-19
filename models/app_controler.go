@@ -14,7 +14,7 @@ type AppControler struct {
 	ControlChan chan ControlMsg
 	MsgSent     *EventSubjectNew
 	MsgRcvd     *EventSubjectNew
-	NewUser     *EventSubjectNew // auto-subscription
+	NewUser     *EventSubjectNew // for auto-subscription
 }
 
 func NewAppControler(client *mongo.Client, esb *EventSubjectBroker) AppControler {
@@ -25,6 +25,7 @@ func InitializeAppControler(client *mongo.Client) *AppControler {
 	msgSent := NewEventSubject_(MSG_SENT)
 	msgRcvd := NewEventSubject_(MSG_RECEIVED)
 	newUser := NewEventSubject_(NEW_USER)
+
 	return &AppControler{
 		DB:          client,
 		ControlChan: make(chan ControlMsg),
@@ -36,16 +37,16 @@ func InitializeAppControler(client *mongo.Client) *AppControler {
 
 func (ac *AppControler) AcceptEvent(event *Event) {
 	if event.SubjectID == MSG_SENT {
-		go func() { ac.MsgSent.Queue <- *event }()
+		ac.MsgSent.Queue <- *event
 
 	} else if event.SubjectID == MSG_RECEIVED {
-		go func() { ac.MsgRcvd.Queue <- *event }()
+		ac.MsgRcvd.Queue <- *event
 
 	} else if event.SubjectID == NEW_USER {
-		go func() { ac.NewUser.Queue <- *event }()
+		ac.NewUser.Queue <- *event
 
 	} else {
-		fmt.Printf("unknown event subject %v\n", event.SubjectID)
+		fmt.Printf("unknown event subject: %v\n", event.SubjectID)
 	}
 }
 
@@ -57,7 +58,7 @@ func (ac *AppControler) ReadEventMessages(ctx context.Context) {
 			switch msg {
 			case DoExit:
 				fmt.Printf("exit read events\n")
-				ac.ESB.ControlChan <- ExitOK
+				ac.ControlChan <- ExitOK
 				return
 			}
 		case event := <-ac.MsgSent.Queue:
