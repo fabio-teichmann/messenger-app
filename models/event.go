@@ -12,16 +12,27 @@ import (
 
 type Event struct {
 	ID        primitive.ObjectID `bson:"_id"`
-	SubjectID EventType          `bson:"subject_id"` // on which queue to publish the message
-	Sender    EventSubscriber    `bson:"sender"`     // event origin
-	Target    EventSubscriber    `bson:"target"`     // event destination
-	Data      Message            `bson:"data"`       // contains payload
+	SubjectID EventType          `bson:"subject_id"`      // on which queue to publish the message
+	Sender    EventSubscriber    `bson:"sender"`          // event origin
+	Target    EventSubscriber    `bson:"target"`          // event destination
+	Data      Message            `bson:"data, omitempty"` // contains payload
+	Time      time.Time          `bson:"time"`            // when the event was published
 	// EventType EventType          `bson:"event_type"` // to classify events
 }
 
 func (e *Event) SendToChat(chat Chat) {
 	chat.Chat <- *e
 	chat.History = append(chat.History, e.Data)
+}
+
+func (e *Event) SentToRcvd() {
+	// change Subject
+	e.SubjectID = MSG_RECEIVED
+	// switch sender and target
+	temp := e.Sender
+	e.Sender = e.Target
+	e.Target = temp
+	e.Time = time.Now()
 }
 
 func (ac *AppControler) GetEventByMessageId(ctx context.Context, messageId uint32) (*Event, error) {

@@ -17,9 +17,9 @@ type AppControler struct {
 	NewUser     *EventSubjectNew // for auto-subscription
 }
 
-func NewAppControler(client *mongo.Client, esb *EventSubjectBroker) AppControler {
-	return AppControler{DB: client, ESB: esb}
-}
+// func NewAppControler(client *mongo.Client, esb *EventSubjectBroker) AppControler {
+// 	return AppControler{DB: client, ESB: esb}
+// }
 
 func InitializeAppControler(client *mongo.Client) *AppControler {
 	msgSent := NewEventSubject_(MSG_SENT)

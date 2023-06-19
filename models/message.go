@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type MsgId uint32
+
 type Message struct {
-	ID         uint32           `bson:"message_id"` // to identify messages in history
+	ID         MsgId            `bson:"message_id"` // to identify messages in history
 	Body       string           `json:"body"`
 	Attachment []byte           `json:"attachmet" bson:"omitempty"`
 	Sender     *EventSubscriber `bson:"sender"`
@@ -30,7 +31,7 @@ func NewMessage(body string) *Message {
 	hash := util.CreateHash([]byte(body))
 
 	message := Message{
-		ID:   hash,
+		ID:   MsgId(hash),
 		Body: body,
 	}
 	return &message
@@ -49,11 +50,11 @@ func getCollection(ctx context.Context, ac *AppControler) *mongo.Collection {
 	return client.Database(dbKey).Collection(collKey)
 }
 
-func (ac *AppControler) GetMessageById(ctx context.Context, msgId primitive.ObjectID) (*Message, error) {
+func (ac *AppControler) GetMessageById(ctx context.Context, msgId MsgId) (*Message, error) {
 	coll := getCollection(ctx, ac)
 	results := []Message{}
 
-	filter := bson.M{"_id": msgId}
+	filter := bson.M{"message_id": msgId}
 	cursor, err := coll.Find(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -79,56 +80,58 @@ func (ac *AppControler) SaveNewMessage(ctx context.Context, msg *Message) error 
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Inserted document with _id: %v", result.InsertedID)
+	fmt.Printf("Inserted document with _id: %v\n", result.InsertedID)
 	return nil
 }
 
-func (ac *AppControler) SetMessageToSent(ctx context.Context, msgId primitive.ObjectID) error {
+func (ac *AppControler) SetMessageToSent(ctx context.Context, msgId MsgId) error {
 	coll := getCollection(ctx, ac)
+	fmt.Println(msgId)
 
-	filter := bson.M{"_id": msgId}
+	filter := bson.M{"message_id": msgId}
 	update := bson.D{{"$set", bson.D{{"sent", true}, {"time_sent", time.Now()}}}} // update message
 
-	result, err := coll.UpdateByID(ctx, filter, update)
+	result, err := coll.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("updated %v event(s)", result.ModifiedCount)
+	fmt.Printf("updated %v event(s)\n", result.ModifiedCount)
 	return nil
 }
 
-func (ac *AppControler) SetMessageToRcvd(ctx context.Context, msgId primitive.ObjectID) error {
+func (ac *AppControler) SetMessageToRcvd(ctx context.Context, msgId MsgId) error {
 	coll := getCollection(ctx, ac)
+	fmt.Println(msgId)
 
-	filter := bson.M{"_id": msgId}
+	filter := bson.M{"message_id": msgId}
 	update := bson.D{{"$set", bson.D{{"received", true}, {"time_rcvd", time.Now()}}}} // update message
 
-	result, err := coll.UpdateByID(ctx, filter, update)
+	result, err := coll.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("updated %v message(s)", result.ModifiedCount)
+	fmt.Printf("updated %v message(s)\n", result.ModifiedCount)
 	return nil
 }
 
-func (ac *AppControler) SetMessageToSeen(ctx context.Context, msgId primitive.ObjectID) error {
+func (ac *AppControler) SetMessageToSeen(ctx context.Context, msgId MsgId) error {
 	coll := getCollection(ctx, ac)
 
-	filter := bson.M{"_id": msgId}
+	filter := bson.M{"message_id": msgId}
 	update := bson.D{{"$set", bson.D{{"seen", true}, {"time_seen", time.Now()}}}} // update message
 
-	result, err := coll.UpdateByID(ctx, filter, update)
+	result, err := coll.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("updated %v message(s)", result.ModifiedCount)
+	fmt.Printf("updated %v message(s)\n", result.ModifiedCount)
 	return nil
 }
 
-func (ac *AppControler) DeleteMessageById(ctx context.Context, msgId primitive.ObjectID) error {
+func (ac *AppControler) DeleteMessageById(ctx context.Context, msgId MsgId) error {
 	coll := getCollection(ctx, ac)
 
-	filter := bson.M{"_id": msgId}
+	filter := bson.M{"message_id": msgId}
 	result, err := coll.DeleteOne(ctx, filter)
 	if err != nil {
 		return err
