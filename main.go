@@ -41,6 +41,7 @@ func main() {
 	}
 	ctx = context.WithValue(ctx, models.TestDBKey, os.Getenv("TEST_MONGODB_NAME"))
 	ctx = context.WithValue(ctx, models.TestCollectionKey, os.Getenv("TEST_COLLECTION_EVENTS"))
+	ctx = context.WithValue(ctx, models.TestCollKeyMsgs, os.Getenv("TEST_COLLECTION_MSGS"))
 	// fmt.Printf("context values - database: %v; collection: %v\n", ctx.Value(models.TestDBKey), ctx.Value(models.TestCollectionKey))
 
 	ac := models.InitializeAppControler(client)
@@ -82,6 +83,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	err = ac.SaveNewMessage(ctx, &event.Data)
 	time.Sleep(1 * time.Second)
 
 	ac.AcceptEvent(event)

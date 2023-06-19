@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"messenger-app/util"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -57,20 +58,32 @@ func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppCo
 
 	if event.SubjectID == MSG_SENT {
 		fmt.Printf("Event: MSG_SENT, Sender: %v, Target: %v\n", event.Sender, event.Target)
-		fmt.Printf("initiate MSG_RECEIVED event...\n")
-		// initiate MsgReceived
-		fmt.Println(event)
-		err := ac.UpdateEventMessageToSentById(ctx, event.ID)
+		// set message to SENT
+		err := ac.SetMessageToSent(ctx, event.Data.ID)
 		if err != nil {
 			fmt.Println(err)
 		}
-		event.SubjectID = MSG_RECEIVED
+
+		// initiate MsgReceived
+		fmt.Printf("initiate MSG_RECEIVED event...\n")
+		// err := ac.UpdateEventMessageToSentById(ctx, event.ID)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+		event.SentToRcvd()
+		// add new MSG_RECEIVED event to DB
+		err = ac.AddEvent(ctx, event)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("MSG_RECEIVED:", event)
+
 		go func() { ac.MsgRcvd.Queue <- *event }()
 
 	} else if event.SubjectID == MSG_RECEIVED {
 		fmt.Printf("Event: MSG_RECEIVED, Sender: %v, Target: %v\n", event.Sender, event.Target)
 		// update message as Received
-		err := ac.UpdateEventMessageToRcvdById(ctx, event.ID)
+		err := ac.SetMessageToRcvd(ctx, event.Data.ID)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -78,27 +91,25 @@ func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppCo
 }
 
 func (es *EventSubscriber) CreateEvent(eventType EventType, message *Message, target *EventSubscriber) (*Event, error) {
-	if eventType == MSG_SENT && message == nil {
+	if message == nil {
 		return nil, errors.New("missing message")
 	}
-	if eventType == NEW_USER {
-		return &Event{
-			ID:        primitive.NewObjectID(),
-			SubjectID: eventType,
-			Sender:    *es,
-			Data:      *message,
-		}, nil
-	}
-	if target == nil {
-		return nil, errors.New("no target defined")
-	}
 
-	return &Event{
+	event := Event{
 		ID:        primitive.NewObjectID(),
 		SubjectID: eventType,
 		Sender:    *es,
-		Target:    *target,
 		Data:      *message,
-		// EventType: eventType,
-	}, nil
+		Time:      time.Now(),
+	}
+
+	if eventType == NEW_USER {
+		return &event, nil
+	}
+
+	if target == nil {
+		return nil, errors.New("no target defined")
+	}
+	event.Target = *target
+	return &event, nil
 }
