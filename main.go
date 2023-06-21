@@ -56,7 +56,7 @@ func main() {
 		// if err != nil {
 		// 	fmt.Println(err)
 		// }
-		ac.AcceptEvent(event)
+		ac.AcceptEvent(ctx, event)
 	}
 	sub2, event := models.NewEventSubscriberWithEvent("user2")
 	if event != nil {
@@ -64,7 +64,7 @@ func main() {
 		// if err != nil {
 		// 	fmt.Println(err)
 		// }
-		ac.AcceptEvent(event)
+		ac.AcceptEvent(ctx, event)
 	}
 
 	// ac.MsgSent.AddSubscriber(sub1)
@@ -79,14 +79,17 @@ func main() {
 	}
 	fmt.Println(event)
 
-	err = ac.AddEvent(ctx, event)
+	// err = ac.AddEvent(ctx, event)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	err = ac.SaveNewMessage(ctx, &event.Data)
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = ac.SaveNewMessage(ctx, &event.Data)
 	time.Sleep(1 * time.Second)
 
-	ac.AcceptEvent(event)
+	ac.AcceptEvent(ctx, event)
 
 	for {
 		select {
