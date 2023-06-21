@@ -66,19 +66,12 @@ func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppCo
 
 		// initiate MsgReceived
 		fmt.Printf("initiate MSG_RECEIVED event...\n")
-		// err := ac.UpdateEventMessageToSentById(ctx, event.ID)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// }
-		event.SentToRcvd()
-		// add new MSG_RECEIVED event to DB
-		err = ac.AddEvent(ctx, event)
+		e, err := event.Target.CreateEvent(MSG_RECEIVED, &event.Data, &event.Sender)
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println("MSG_RECEIVED:", event)
 
-		go func() { ac.MsgRcvd.Queue <- *event }()
+		ac.AcceptEvent(ctx, e)
 
 	} else if event.SubjectID == MSG_RECEIVED {
 		fmt.Printf("Event: MSG_RECEIVED, Sender: %v, Target: %v\n", event.Sender, event.Target)

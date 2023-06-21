@@ -35,15 +35,21 @@ func InitializeAppControler(client *mongo.Client) *AppControler {
 	}
 }
 
-func (ac *AppControler) AcceptEvent(event *Event) {
+func (ac *AppControler) AcceptEvent(ctx context.Context, event *Event) {
+	// persist incoming event
+	err := ac.AddEvent(ctx, event)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// to avoid blocking when calling AcceptEvent, use go functions
 	if event.SubjectID == MSG_SENT {
-		ac.MsgSent.Queue <- *event
+		go func() { ac.MsgSent.Queue <- *event }()
 
 	} else if event.SubjectID == MSG_RECEIVED {
-		ac.MsgRcvd.Queue <- *event
+		go func() { ac.MsgRcvd.Queue <- *event }()
 
 	} else if event.SubjectID == NEW_USER {
-		ac.NewUser.Queue <- *event
+		go func() { ac.NewUser.Queue <- *event }()
 
 	} else {
 		fmt.Printf("unknown event subject: %v\n", event.SubjectID)
