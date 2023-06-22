@@ -8,16 +8,16 @@ import (
 )
 
 type AppControler struct {
-	DB  *mongo.Client
-	ESB *EventSubjectBroker
+	DB *mongo.Client
+	// ESB *EventSubjectBroker
 	// channels
 	ControlChan chan ControlMsg
-	MsgSent     *EventSubjectNew
-	MsgRcvd     *EventSubjectNew
-	NewUser     *EventSubjectNew // for auto-subscription
-	UserLogIn   *EventSubjectNew
-	UserOnl     *EventSubjectNew
-	UserLogOut  *EventSubjectNew
+	MsgSent     *EventSubject
+	MsgRcvd     *EventSubject
+	NewUser     *EventSubject // for auto-subscription
+	UserLogIn   *EventSubject
+	UserOnl     *EventSubject
+	UserLogOut  *EventSubject
 }
 
 // func NewAppControler(client *mongo.Client, esb *EventSubjectBroker) AppControler {
@@ -25,12 +25,12 @@ type AppControler struct {
 // }
 
 func InitializeAppControler(client *mongo.Client) *AppControler {
-	msgSent := NewEventSubject_(MSG_SENT)
-	msgRcvd := NewEventSubject_(MSG_RECEIVED)
-	newUser := NewEventSubject_(NEW_USER)
-	userLogIn := NewEventSubject_(USER_LOGIN)
-	userOnl := NewEventSubject_(USER_ONLINE)
-	userLogOut := NewEventSubject_(USER_LOGOUT)
+	msgSent := NewEventSubject(MSG_SENT)
+	msgRcvd := NewEventSubject(MSG_RECEIVED)
+	newUser := NewEventSubject(NEW_USER)
+	userLogIn := NewEventSubject(USER_LOGIN)
+	userOnl := NewEventSubject(USER_ONLINE)
+	userLogOut := NewEventSubject(USER_LOGOUT)
 
 	return &AppControler{
 		DB:          client,
@@ -96,7 +96,15 @@ func (ac *AppControler) ReadEventMessages(ctx context.Context) {
 			// subscribe user to all required channels
 			ac.MsgSent.AddSubscriber(&event.Sender)
 			ac.MsgRcvd.AddSubscriber(&event.Sender)
-		}
 
+		case event := <-ac.UserLogIn.Queue:
+			ac.UserLogIn.NotifySubscriber(ctx, ac, &event)
+
+		case event := <-ac.UserOnl.Queue:
+			ac.UserOnl.NotifySubscriber(ctx, ac, &event)
+
+		case event := <-ac.UserLogOut.Queue:
+			ac.UserLogOut.NotifySubscriber(ctx, ac, &event)
+		}
 	}
 }
