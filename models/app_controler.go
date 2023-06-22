@@ -15,6 +15,9 @@ type AppControler struct {
 	MsgSent     *EventSubjectNew
 	MsgRcvd     *EventSubjectNew
 	NewUser     *EventSubjectNew // for auto-subscription
+	UserLogIn   *EventSubjectNew
+	UserOnl     *EventSubjectNew
+	UserLogOut  *EventSubjectNew
 }
 
 // func NewAppControler(client *mongo.Client, esb *EventSubjectBroker) AppControler {
@@ -25,6 +28,9 @@ func InitializeAppControler(client *mongo.Client) *AppControler {
 	msgSent := NewEventSubject_(MSG_SENT)
 	msgRcvd := NewEventSubject_(MSG_RECEIVED)
 	newUser := NewEventSubject_(NEW_USER)
+	userLogIn := NewEventSubject_(USER_LOGIN)
+	userOnl := NewEventSubject_(USER_ONLINE)
+	userLogOut := NewEventSubject_(USER_LOGOUT)
 
 	return &AppControler{
 		DB:          client,
@@ -32,6 +38,9 @@ func InitializeAppControler(client *mongo.Client) *AppControler {
 		MsgSent:     msgSent,
 		MsgRcvd:     msgRcvd,
 		NewUser:     newUser,
+		UserLogIn:   userLogIn,
+		UserOnl:     userOnl,
+		UserLogOut:  userLogOut,
 	}
 }
 
