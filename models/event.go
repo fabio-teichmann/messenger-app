@@ -20,10 +20,10 @@ type Event struct {
 	// EventType EventType          `bson:"event_type"` // to classify events
 }
 
-func (e *Event) SendToChat(chat Chat) {
-	chat.Chat <- *e
-	chat.History = append(chat.History, e.Data)
-}
+// func (e *Event) SendToChat(chat Chat) {
+// 	chat.Chat <- *e
+// 	chat.History = append(chat.History, e.Data)
+// }
 
 func (e *Event) SentToRcvd() {
 	// change Subject

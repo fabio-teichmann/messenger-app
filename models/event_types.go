@@ -9,7 +9,16 @@ const (
 	MSG_RECEIVED
 	MSG_SEEN
 	NEW_USER
+	USER_LOGIN
 	USER_ONLINE
 	USER_IN_CHAT
 	USER_TYPING
+	USER_LOGOUT
+)
+
+type ControlMsg int
+
+const (
+	DoExit = iota
+	ExitOK
 )

@@ -80,6 +80,12 @@ func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppCo
 		if err != nil {
 			fmt.Println(err)
 		}
+
+	} else if event.SubjectID == USER_LOGIN {
+		fmt.Printf("User Login: %v", event.Sender)
+
+		// trigger USER_ONLINE --> need to notify all subscribers that chat with event.Sender
+		event.Sender.CreateEvent(USER_ONLINE, nil, nil)
 	}
 }
 

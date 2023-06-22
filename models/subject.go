@@ -1,12 +1,10 @@
 package models
 
 import (
+	"context"
+	"fmt"
 	"sync"
 )
-
-// type Subscriber interface {
-// 	NotifyCallback(Event)
-// }
 
 type Subject interface {
 	AddSubscriber(Subscriber)
@@ -15,13 +13,13 @@ type Subject interface {
 }
 
 type EventSubject struct {
-	ID int
-	// Queue     chan Event
+	EventType EventType
+	Queue     chan Event
 	Observers sync.Map
 }
 
-func NewEventSubject(id int) *EventSubject {
-	return &EventSubject{ID: id}
+func NewEventSubject(eventType EventType) *EventSubject {
+	return &EventSubject{EventType: eventType, Queue: make(chan Event)}
 }
 
 func (subject *EventSubject) AddSubscriber(sub *EventSubscriber) {
@@ -33,24 +31,24 @@ func (subject *EventSubject) RemoveSubscriber(sub EventSubscriber) {
 	subject.Observers.Delete(sub)
 }
 
-// func (es *EventSubject) NotifySubscriber(event *Event) {
-// 	es.Observers.Range(func(key interface{}, value interface{}) bool {
-// 		// fmt.Println(es.ID, event.Data, key.(EventSubscriber).User)
-// 		if key == nil {
-// 			fmt.Printf("could not find matching Subscriber %s to event: %v", event.Target.User.Name, event)
-// 			return false
-// 		}
-// 		subscriber := key.(*EventSubscriber)
+func (es *EventSubject) NotifySubscriber(ctx context.Context, ac *AppControler, event *Event) {
+	es.Observers.Range(func(key interface{}, value interface{}) bool {
+		// fmt.Println(es.ID, event.Data, key.(EventSubscriber).User)
+		if key == nil {
+			fmt.Printf("could not find matching Subscriber %s to event: %v", event.Target.User.Name, event)
+			return false
+		}
+		subscriber := key.(*EventSubscriber)
 
-// 		if subscriber.User.ID == event.Target.User.ID {
-// 			// found matching subscriber
-// 			subscriber.NotifyCallback(event)
-// 			return false
-// 		}
-// 		return true
-// 	})
-// 	// fmt.Printf("could not find matching Subscriber with id %v to event id: %v\n", event.TargetID, event.SubjectID)
-// }
+		if subscriber.User.ID == event.Target.User.ID {
+			// found matching subscriber
+			subscriber.NotifyCallback(ctx, ac, event)
+			return false
+		}
+		return true
+	})
+	// fmt.Printf("could not find matching Subscriber with id %v to event id: %v\n", event.TargetID, event.SubjectID)
+}
 
 // func (es *EventSubject) AcceptEvent(event *Event) {
 // 	if event == nil {
@@ -60,20 +58,20 @@ func (subject *EventSubject) RemoveSubscriber(sub EventSubscriber) {
 // 	es.Queue <- *event
 // }
 
-// func (es *EventSubject) ReadEvents(control chan ControlMsg) {
+// func (es *EventSubjectNew) ReadEvents(control chan ControlMsg) {
 
 // 	for {
 // 		select {
 // 		case msg := <-control:
 // 			switch msg {
 // 			case DoExit:
-// 				fmt.Printf("exit read events for subject %v\n", es.ID)
+// 				fmt.Printf("exit read events for subject %v\n", es.EventType)
 // 				control <- ExitOK
 // 				return
 // 			}
 // 		case event := <-es.Queue:
 // 			// notify
-// 			es.NotifySubscriber(event)
+// 			es.NotifySubscriber(&event)
 // 			// fmt.Println(msg)
 // 		}
 // 	}
