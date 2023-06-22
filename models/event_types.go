@@ -15,3 +15,10 @@ const (
 	USER_TYPING
 	USER_LOGOUT
 )
+
+type ControlMsg int
+
+const (
+	DoExit = iota
+	ExitOK
+)
