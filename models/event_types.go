@@ -14,6 +14,8 @@ const (
 	USER_IN_CHAT
 	USER_TYPING
 	USER_LOGOUT
+	CREATE_CHAT
+	DELETE_CHAT
 )
 
 type ControlMsg int

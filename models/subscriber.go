@@ -24,7 +24,7 @@ type User struct {
 
 type EventSubscriber struct {
 	User
-	Chats []EventSubscriber
+	Chats map[uint32]EventSubscriber
 }
 
 func NewEventSubscriber(user User) *EventSubscriber {
@@ -38,7 +38,7 @@ func NewEventSubscriberByName(userName string) *EventSubscriber {
 			ID:   hash,
 			Name: userName,
 		},
-		[]EventSubscriber{},
+		make(map[uint32]EventSubscriber),
 	}
 }
 
@@ -88,6 +88,12 @@ func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppCo
 
 		// trigger USER_ONLINE --> need to notify all subscribers that chat with event.Sender
 		event.Sender.CreateEvent(USER_ONLINE, nil, nil)
+
+	} else if event.SubjectID == CREATE_CHAT {
+		fmt.Printf("adding chat for users %v and %v", event.Sender, event.Target)
+
+		event.Sender.AddChat(&event.Target)
+		event.Target.AddChat(&event.Sender)
 	}
 }
 
@@ -113,4 +119,14 @@ func (es *EventSubscriber) CreateEvent(eventType EventType, message *Message, ta
 	}
 	event.Target = *target
 	return &event, nil
+}
+
+func (es *EventSubscriber) AddChat(eventSub *EventSubscriber) {
+	if _, ok := es.Chats[eventSub.ID]; ok {
+		es.Chats[eventSub.ID] = *eventSub
+	}
+}
+
+func (es *EventSubscriber) DeleteChat(eventSub *EventSubscriber) {
+	delete(es.Chats, eventSub.ID)
 }

@@ -52,21 +52,28 @@ func main() {
 
 	sub1, event := models.NewEventSubscriberWithEvent("user1")
 	if event != nil {
-		// err = ac.AddEvent(ctx, event)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// }
 		ac.AcceptEvent(ctx, event)
 	}
 	sub2, event := models.NewEventSubscriberWithEvent("user2")
 	if event != nil {
-		// err = ac.AddEvent(ctx, event)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// }
 		ac.AcceptEvent(ctx, event)
 	}
-	sub1.Chats = append(sub1.Chats, *sub2)
+	sub3, event := models.NewEventSubscriberWithEvent("user3")
+	if event != nil {
+		ac.AcceptEvent(ctx, event)
+	}
+
+	// add chats between users
+	event, err = sub1.CreateEvent(models.CREATE_CHAT, models.NewMessage("Create chat"), sub2)
+	if err != nil {
+		fmt.Println(err)
+	}
+	ac.AcceptEvent(ctx, event)
+	event, err = sub1.CreateEvent(models.CREATE_CHAT, models.NewMessage("Create chat"), sub3)
+	if err != nil {
+		fmt.Println(err)
+	}
+	ac.AcceptEvent(ctx, event)
 
 	// user online event
 	for _, user := range sub1.Chats {
