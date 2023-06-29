@@ -24,6 +24,7 @@ type User struct {
 
 type EventSubscriber struct {
 	User
+	Chats []EventSubscriber
 }
 
 func NewEventSubscriber(user User) *EventSubscriber {
@@ -37,6 +38,7 @@ func NewEventSubscriberByName(userName string) *EventSubscriber {
 			ID:   hash,
 			Name: userName,
 		},
+		[]EventSubscriber{},
 	}
 }
 

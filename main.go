@@ -66,12 +66,16 @@ func main() {
 		// }
 		ac.AcceptEvent(ctx, event)
 	}
+	sub1.Chats = append(sub1.Chats, *sub2)
 
-	// ac.MsgSent.AddSubscriber(sub1)
-	// ac.MsgSent.AddSubscriber(sub2)
-
-	// ac.MsgRcvd.AddSubscriber(sub1)
-	// ac.MsgRcvd.AddSubscriber(sub2)
+	// user online event
+	for _, user := range sub1.Chats {
+		event, err := sub1.CreateEvent(models.USER_ONLINE, models.NewMessage("User online"), &user)
+		if err != nil {
+			fmt.Println(err)
+		}
+		ac.AcceptEvent(ctx, event)
+	}
 
 	event, err = sub1.CreateEvent(models.MSG_SENT, models.NewMessage("Test message"), sub2)
 	if err != nil {

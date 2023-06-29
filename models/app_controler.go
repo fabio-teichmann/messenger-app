@@ -77,15 +77,8 @@ func (ac *AppControler) ReadEventMessages(ctx context.Context) {
 				return
 			}
 		case event := <-ac.MsgSent.Queue:
-			// event, err := ac.GetEventById(ctx, eventMsg.ID)
-			// if err != nil {
-			// 	fmt.Printf("error ocurred reading MsgSent events: %s", err)
-			// 	continue
-			// }
 			// notify
 			ac.MsgSent.NotifySubscriber(ctx, ac, &event)
-			// ac.ESB.EventSubject.NotifySubscriber(event)
-			// fmt.Println(msg)
 
 		case event := <-ac.MsgRcvd.Queue:
 			// notify
