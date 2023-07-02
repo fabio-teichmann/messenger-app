@@ -61,6 +61,9 @@ func (ac *AppControler) AcceptEvent(ctx context.Context, event *Event) {
 	} else if event.SubjectID == CREATE_CHAT {
 		go func() { ac.CreateChat.Queue <- *event }()
 
+	} else if event.SubjectID == USER_ONLINE {
+		go func() { ac.UserOnl.Queue <- *event }()
+
 	} else {
 		fmt.Printf("unknown event subject: %v\n", event.SubjectID)
 	}
@@ -90,6 +93,9 @@ func (ac *AppControler) ReadEventMessages(ctx context.Context) {
 			// subscribe user to all required channels
 			ac.MsgSent.AddSubscriber(&event.Sender)
 			ac.MsgRcvd.AddSubscriber(&event.Sender)
+			ac.UserOnl.AddSubscriber(&event.Sender)
+			ac.UserLogIn.AddSubscriber(&event.Sender)
+			ac.CreateChat.AddSubscriber(&event.Sender)
 
 		case event := <-ac.UserLogIn.Queue:
 			ac.UserLogIn.NotifySubscriber(ctx, ac, &event)

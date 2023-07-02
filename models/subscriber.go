@@ -10,6 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type void struct{}
+
 type Subscriber interface {
 	NotifyCallback(*Event)
 	CreateEvent(EventType, Message, *EventSubscriber) (*Event, error)
@@ -24,7 +26,7 @@ type User struct {
 
 type EventSubscriber struct {
 	User
-	Chats map[uint32]EventSubscriber
+	Chats map[uint32]void
 }
 
 func NewEventSubscriber(user User) *EventSubscriber {
@@ -38,7 +40,7 @@ func NewEventSubscriberByName(userName string) *EventSubscriber {
 			ID:   hash,
 			Name: userName,
 		},
-		make(map[uint32]EventSubscriber),
+		map[uint32]void{},
 	}
 }
 
@@ -90,7 +92,7 @@ func (subscriber *EventSubscriber) NotifyCallback(ctx context.Context, ac *AppCo
 		event.Sender.CreateEvent(USER_ONLINE, nil, nil)
 
 	} else if event.SubjectID == CREATE_CHAT {
-		fmt.Printf("adding chat for users %v and %v", event.Sender, event.Target)
+		fmt.Printf("adding chat for users %v and %v\n", event.Sender, event.Target)
 
 		event.Sender.AddChat(&event.Target)
 		event.Target.AddChat(&event.Sender)
@@ -122,9 +124,12 @@ func (es *EventSubscriber) CreateEvent(eventType EventType, message *Message, ta
 }
 
 func (es *EventSubscriber) AddChat(eventSub *EventSubscriber) {
-	if _, ok := es.Chats[eventSub.ID]; ok {
-		es.Chats[eventSub.ID] = *eventSub
+	_, included := es.Chats[eventSub.ID]
+	if included {
+		return
 	}
+	es.Chats[eventSub.ID] = void{}
+	fmt.Println("add chat:", es, eventSub.ID, included)
 }
 
 func (es *EventSubscriber) DeleteChat(eventSub *EventSubscriber) {

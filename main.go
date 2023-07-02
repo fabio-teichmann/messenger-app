@@ -65,19 +65,27 @@ func main() {
 
 	// add chats between users
 	event, err = sub1.CreateEvent(models.CREATE_CHAT, models.NewMessage("Create chat"), sub2)
+	// fmt.Println("create chat:", event)
 	if err != nil {
 		fmt.Println(err)
 	}
 	ac.AcceptEvent(ctx, event)
+	time.Sleep(1 * time.Second)
+	fmt.Println()
 	event, err = sub1.CreateEvent(models.CREATE_CHAT, models.NewMessage("Create chat"), sub3)
 	if err != nil {
 		fmt.Println(err)
 	}
 	ac.AcceptEvent(ctx, event)
+	time.Sleep(1 * time.Second)
+	fmt.Println()
 
 	// user online event
-	for _, user := range sub1.Chats {
-		event, err := sub1.CreateEvent(models.USER_ONLINE, models.NewMessage("User online"), &user)
+	for userId, _ := range sub1.Chats {
+		fmt.Println("chats of sub1:", userId)
+		user := models.NewEventSubscriberByName("dummy")
+		user.ID = userId
+		event, err := sub1.CreateEvent(models.USER_ONLINE, models.NewMessage("User online"), user)
 		if err != nil {
 			fmt.Println(err)
 		}
