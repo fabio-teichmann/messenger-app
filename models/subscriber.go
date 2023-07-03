@@ -124,6 +124,9 @@ func (es *EventSubscriber) CreateEvent(eventType EventType, message *Message, ta
 }
 
 func (es *EventSubscriber) AddChat(eventSub *EventSubscriber) {
+	if es.ID == eventSub.ID {
+		return
+	}
 	_, included := es.Chats[eventSub.ID]
 	if included {
 		return
